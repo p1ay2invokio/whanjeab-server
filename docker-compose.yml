@@ -1,0 +1,22 @@
+services:
+  whanjeab:
+    container_name: whanjeab
+    build: .
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql://play2:123456@db:5432/whanjeabdb?schema=public
+      - PORT=3015
+    command: sh -c "npx prisma deploy && npx prisma generate && npm start"
+    networks:
+      - dev_network
+    volumes:
+      - "db-data:/var/lib/postgresql/data"
+    ports:
+      - "3015:3001"
+
+networks:
+  dev_network:
+    external: true
+
+volumes:
+  db-data:

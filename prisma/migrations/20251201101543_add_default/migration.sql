@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "User" ALTER COLUMN "request" SET DEFAULT 0,
+ALTER COLUMN "keygen" SET DEFAULT 0;
