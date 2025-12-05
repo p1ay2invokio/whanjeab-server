@@ -1,0 +1,141 @@
+import { Router } from "express"
+import { prisma } from "../prisma/appdatasource"
+import axios, { AxiosError } from 'axios'
+
+const app = Router()
+
+
+const updateRequest = async (api_key: string) => {
+
+    if (api_key) {
+        let userData = await prisma.key.findFirst({
+            where: {
+                key: api_key
+            },
+            include: {
+                user: true
+            }
+        })
+
+        if (userData?.user.request == null) {
+            return "IDIOT"
+        }
+
+        await prisma.user.update({
+            where: {
+                id: userData?.user_id
+            },
+            data: {
+                request: userData?.user.request + 1
+            }
+        })
+    } else {
+        console.log("PASS!")
+    }
+}
+
+const pushNotify = async (api_key: string, channel_access: string, to: string, message: string) => {
+    let test = await axios.post(`https://api.line.me/v2/bot/message/push`, {
+        to: to,
+        messages: [
+            {
+                type: 'text',
+                text: message
+            }
+        ]
+    }, {
+        headers: {
+            Authorization: `Bearer ${channel_access}`,
+            "Content-Type": 'application/json'
+        }
+    }).then((res) => {
+        updateRequest(api_key)
+        return res.data
+    }).catch((err: AxiosError) => {
+        return err.response?.data
+    })
+
+    return test
+
+}
+
+const getGroupId = async (channel_access: string, to: string, message: string) => {
+    let test = await axios.post(`https://api.line.me/v2/bot/message/push`, {
+        to: to,
+        messages: [
+            {
+                type: 'text',
+                text: "userId / groupId : " + message
+            }
+        ]
+    }, {
+        headers: {
+            Authorization: `Bearer ${channel_access}`,
+            "Content-Type": 'application/json'
+        }
+    }).then((res) => {
+        return res.data
+    }).catch((err: AxiosError) => {
+        return err.response?.data
+    })
+
+    return test
+
+}
+
+app.post('/webhook', async (req, res) => {
+
+    const events = req.body.events
+
+    if (events[0].message.type.length == 172) {
+        if (events[0].source.groupId) {
+            getGroupId(events[0].message.text, events[0].source.groupId, events[0].source.groupId)
+        }
+    }
+
+    console.log(events)
+
+    res.status(200).send()
+})
+
+app.post('/push', async (req, res) => {
+
+    // channel_access = bot line token
+
+    let api_key: any = req.headers['x-api-key']
+
+    if (!api_key) {
+        return res.status(420).send({ message: 'api key is missing!', success: false })
+    }
+
+    console.log(api_key)
+
+    let { channel_access, to, message } = req.body
+
+    if (channel_access && to && message) {
+
+        let exist_key = await prisma.key.findFirst({
+            where: {
+                key: api_key
+            }
+        })
+
+        console.log(exist_key)
+
+        if (exist_key) {
+            let data_noti = await pushNotify(api_key, channel_access, to, message)
+            if (data_noti == undefined) {
+                return res.status(420).send({ message: 'LINE ERROR ' + data_noti.message, success: false })
+            } else {
+                return res.status(200).send({ message: data_noti.message, success: true })
+            }
+        } else {
+            return res.status(420).send({ message: 'api key is valid!', success: false })
+        }
+    } else {
+        return res.status(400).send({ message: 'provide is missing!', success: false })
+
+    }
+})
+
+export default app
