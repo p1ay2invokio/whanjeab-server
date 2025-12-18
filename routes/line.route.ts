@@ -1,6 +1,7 @@
 import { Router } from "express"
 import { prisma } from "../prisma/appdatasource"
 import axios, { AxiosError } from 'axios'
+import { auth } from "../middlewares/auth.middleware"
 
 const app = Router()
 
@@ -8,7 +9,7 @@ const app = Router()
 const updateRequest = async (api_key: string) => {
 
     if (api_key) {
-        let userData = await prisma.key.findFirst({
+        let userData: any = await prisma.key.findFirst({
             where: {
                 key: api_key
             },
@@ -29,6 +30,7 @@ const updateRequest = async (api_key: string) => {
                 request: userData?.user.request + 1
             }
         })
+
     } else {
         console.log("PASS!")
     }
@@ -117,17 +119,24 @@ app.post('/push', async (req, res) => {
         let exist_key = await prisma.key.findFirst({
             where: {
                 key: api_key
+            },
+            include: {
+                user: true
             }
         })
 
         console.log(exist_key)
 
         if (exist_key) {
-            let data_noti = await pushNotify(api_key, channel_access, to, message)
-            if (data_noti == undefined) {
-                return res.status(420).send({ message: 'LINE ERROR ' + data_noti.message, success: false })
+            if (exist_key.user.request < exist_key.user.request_max) {
+                let data_noti = await pushNotify(api_key, channel_access, to, message)
+                if (data_noti == undefined) {
+                    return res.status(420).send({ message: 'LINE ERROR!' + data_noti.message, success: false })
+                } else {
+                    return res.status(200).send({ message: data_noti.message, success: true })
+                }
             } else {
-                return res.status(200).send({ message: data_noti.message, success: true })
+                return res.status(400).send({ message: 'exceed limit!', success: false })
             }
         } else {
             return res.status(420).send({ message: 'api key is valid!', success: false })

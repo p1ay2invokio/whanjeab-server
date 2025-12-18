@@ -4,7 +4,6 @@
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,23 +13,39 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id           Int      @id @unique @default(autoincrement())
+  email        String
+  password     String?
+  role         Int      @default(0)
+  request      Int      @default(0)
+  request_max  Int      @default(200)
+  keygen_max   Int      @default(10)
+  keygen       Int      @default(0)
+  cost         Decimal? @default(0.00) @db.Decimal(5, 2)
+  email_active Int      @default(0)
+  key          Key?
 
+  googleId    String?
+  provider    String?
+  displayName String?
+  avatar      String?
 
-model User{
-  id Int @id @unique @default(autoincrement())
-  email String
-  password String
-  role Int @default(0)
-  request Int? @default(0)
-  keygen Int? @default(0)
-  cost Decimal? @db.Decimal(5, 2) @default(0.00)
-  email_active Int @default(0)
-  key Key?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
 }
 
-model Key{
-  id Int @id @unique @default(autoincrement())
-  user_id Int @unique
-  key String?
-  user User @relation(fields: [user_id], references: [id])
+model Key {
+  id      Int     @id @unique @default(autoincrement())
+  user_id Int     @unique
+  key     String?
+  user    User    @relation(fields: [user_id], references: [id])
+}
+
+model Product {
+  id    Int     @id @unique @default(autoincrement())
+  name  String?
+  price Int?
+  quota Int?
+  img   String?
 }

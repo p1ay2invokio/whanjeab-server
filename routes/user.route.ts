@@ -25,7 +25,7 @@ app.post("/login", async (req, res) => {
     res.status(200).send({ success: true, token: gen_token, message: 'เข้าสู่ระบบสำเร็จ!' })
 })
 
-app.post("/register", async (req, res) => {
+app.post("/signup", async (req, res) => {
     const { email, password } = req.body
 
     if (!email || !password) {
@@ -39,6 +39,8 @@ app.post("/register", async (req, res) => {
         where: { email: email }
     })
 
+    console.log(existingUser)
+
     if (existingUser) {
         return res.status(400).send({
             success: false,
@@ -50,7 +52,8 @@ app.post("/register", async (req, res) => {
         data: {
             email: email,
             password: password,
-            role: 0
+            role: 0,
+            email_active: 0
         }
     })
 
@@ -75,6 +78,10 @@ app.get("/user", auth, async (req, res) => {
 
     res.status(200).send(user_res)
 })
+
+// app.post('/po', auth, async(req, res)=>{
+
+// })
 
 app.get("/mykey", auth, async (req, res) => {
 
