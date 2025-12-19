@@ -2,12 +2,19 @@ import jwt from 'jsonwebtoken';
 import { Router } from "express";
 import { auth } from "../middlewares/auth.middleware";
 import { prisma } from "../prisma/appdatasource";
+import { CloudflareVerify } from '../methods/cloudflareVerify';
 
 const app = Router()
 
 app.post("/login", async (req, res) => {
 
-    const { email, password } = req.body
+    const { email, password, CfToken } = req.body
+
+    let CfRes = await CloudflareVerify(CfToken)
+
+    if (!CfRes.success) {
+        return res.status(400).send({ success: false, message: 'cloudflare ไม่ถูกยืนยัน!' })
+    }
 
     let user = await prisma.user.findFirst({
         where: {
@@ -26,7 +33,14 @@ app.post("/login", async (req, res) => {
 })
 
 app.post("/signup", async (req, res) => {
-    const { email, password } = req.body
+    const { email, password, CfToken } = req.body
+
+    let CfRes = await CloudflareVerify(CfToken)
+
+    if (!CfRes.success) {
+        return res.status(400).send({ success: false, message: 'cloudflare ไม่ถูกยืนยัน!' })
+    }
+
 
     if (!email || !password) {
         return res.status(400).send({
@@ -92,7 +106,7 @@ app.get("/mykey", auth, async (req, res) => {
             user_id: user.user_id
         }
     })
-    
+
 
     res.status(200).send(my_key)
 })
