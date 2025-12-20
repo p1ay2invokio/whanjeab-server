@@ -67,7 +67,7 @@ const getGroupId = async (channel_access: string, to: string, message: string) =
         messages: [
             {
                 type: 'text',
-                text: "userId / groupId : " + message
+                text: `groupId : ${message}`
             }
         ]
     }, {
@@ -89,15 +89,20 @@ app.post('/webhook', async (req, res) => {
 
     const events = req.body.events
 
-    if (events[0].message.type.length == 172) {
-        if (events[0].source.groupId) {
-            getGroupId(events[0].message.text, events[0].source.groupId, events[0].source.groupId)
+    console.log(events)
+
+    if (events && events.length > 0) {
+        // ให้ user ส่ง channel_access มา ของ line ผ่าน bot
+        if (events[0].message.text.length == 172) {
+            if (events[0].source.type == 'group') {
+                if (events[0].source.groupId) {
+                    let response_getId = getGroupId(events[0].message.text, events[0].source.groupId, events[0].source.groupId)
+                }
+            }
         }
     }
 
-    console.log(events)
-
-    res.status(200).send(200)
+    res.status(200).send()
 })
 
 app.post('/push', async (req, res) => {
