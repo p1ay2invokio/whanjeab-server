@@ -97,7 +97,7 @@ app.post('/webhook', async (req, res) => {
 
     console.log(events)
 
-    res.status(200).send()
+    res.status(200).send(200)
 })
 
 app.post('/push', async (req, res) => {
