@@ -46,7 +46,7 @@ app.post('/slip_verify', auth, limitSlip, upload.single("slip"), async (req, res
         knownLength: slip.size,
     });
 
-    form.append("log", false)
+    // form.append("log", false)
 
     let res_verify = await axios.post(`https://api.slipok.com/api/line/apikey/39175`, form, {
         headers: {
