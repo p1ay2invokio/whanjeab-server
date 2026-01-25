@@ -15,5 +15,6 @@ jobs:
                sudo bash -c '
                   pwd
                   cd /root/whanjeab-server
-                  docker ps
+                  git pull
+                  docker compose up -d --build
                 '
