@@ -13,6 +13,7 @@ jobs:
             - name: whanjeabs pulling and deploy
               run: |
                sudo bash -c'
+                  pwd
                   cd /root/whanjeab-server
                   docker ps
                 '
