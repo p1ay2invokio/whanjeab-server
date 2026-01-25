@@ -49,3 +49,14 @@ model Product {
   quota Int?
   img   String?
 }
+
+model Order {
+  id         String @id @unique
+  customerId Int
+  productId  Int
+  status     String //pending, paid, failed, expired
+  amount     Float
+
+  createAt DateTime  @default(now())
+  updateAt DateTime? @updatedAt
+}

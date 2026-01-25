@@ -3,6 +3,7 @@ import { Router } from "express";
 import { auth } from "../middlewares/auth.middleware";
 import { prisma } from "../prisma/appdatasource";
 import { CloudflareVerify } from '../methods/cloudflareVerify';
+import { is_dev } from '../config';
 
 const app = Router()
 
@@ -10,10 +11,12 @@ app.post("/login", async (req, res) => {
 
     const { email, password, CfToken } = req.body
 
-    let CfRes = await CloudflareVerify(CfToken)
+    if (!is_dev) {
+        let CfRes = await CloudflareVerify(CfToken)
 
-    if (!CfRes.success) {
-        return res.status(400).send({ success: false, message: 'cloudflare ไม่ถูกยืนยัน!' })
+        if (!CfRes.success) {
+            return res.status(400).send({ success: false, message: 'cloudflare ไม่ถูกยืนยัน!' })
+        }
     }
 
     let user = await prisma.user.findFirst({
