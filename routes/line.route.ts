@@ -57,6 +57,8 @@ const pushNotify = async (api_key: string, channel_access: string, to: string, m
         return err.response?.data
     })
 
+    console.log(test)
+
     return test
 
 }
